@@ -14,27 +14,15 @@ var repoDefaults = [
 ];
 
 var langLabels = [{
-        name: "L-rust",
-        color: "bfd4f2",
-        url:  "https://api.github.com/servo/servo/labels/L-rust",
-        selected: true
-    },
-    {
         name: "L-python",
         color: "bfd4f2",
-        url:  "https://api.github.com/servo/servo/labels/L-python",
+        url:  "https://api.github.com/anidata/anidata.github.io/labels/L-python",
         selected: true
     },
     {
         name: "L-javascript",
         color: "bfd4f2",
-        url:  "https://api.github.com/servo/servo/labels/L-javascript",
-        selected: true
-    },
-    {
-        name: "L-saltstack",
-        color: "bfd4f2",
-        url:  "https://api.github.com/servo/servo/labels/L-saltstack",
+        url:  "https://api.github.com/anidata/anidata.github.io/labels/L-python",
         selected: true
     },
 ];
@@ -80,7 +68,7 @@ var extractFunction = function (callback) {
         all = easies.concat(lessEasies);
 
     all.sort(timeSort);
-    all.map(addDefaultLanguageLabel);
+    // all.map(addDefaultLanguageLabel);
     callback(all);
   };
 };
@@ -91,41 +79,18 @@ var extractLabel = function (label, regex) {
 
 var issuesUrl = "https://api.github.com/search/issues";
 
-var getPotentiallyOpenIssues = function (callback) {
-
-    var today = new Date(),
-        twoWeeksAgo = new Date(today - 86400000 * 14),
-        olderThanTwoWeeks = "<" + twoWeeksAgo.toISOString().slice(0, 10);
-
-    var easy = $.ajax({
-        dataType: "json",
-        url: issuesUrl,
-        data: "q=updated:" + olderThanTwoWeeks + "+state:open+label:C-assigned+label:E-Easy+-label:\"C-has%20open%20PR\"+user:servo&sort=updated"
-    });
-
-    var lessEasy = $.ajax({
-        dataType: "json",
-        url: issuesUrl,
-        data: "q=updated:" + olderThanTwoWeeks + "+state:open+label:C-assigned+label:\"E-Less%20easy\"+-label:\"C-has%20open%20PR\"+user:servo&sort=updated"
-    });
-
-    var dataExtractor = extractFunction(callback);
-
-    $.when(easy, lessEasy).done(dataExtractor);
-};
-
 var getOpenIssues = function (callback) {
 
     var easy = $.ajax({
         dataType: "json",
         url: issuesUrl,
-        data: "q=state:open+-label:C-assigned+-label:S-blocked-on-external+label:E-Easy+user:servo&sort=created"
+        data: "q=user:anidata+state:open+label:E-easy+-label:\"C-has%20open%20PR\"&sort=updated"
     });
 
     var lessEasy = $.ajax({
         dataType: "json",
         url: issuesUrl,
-        data: "q=state:open+-label:C-assigned+-label:S-blocked-on-external+label:\"E-Less%20easy\"+user:servo&sort=created"
+        data: "q=user:anidata+state:open+label:\"E-less%20easy\"+-label:\"C-has%20open%20PR\"&sort=updated"
     });
 
     var dataExtractor = extractFunction(callback);
@@ -312,7 +277,8 @@ var IssueList = React.createClass({
             return false;
         });
 
-        return filteredIssues;
+        // return filteredIssues;
+        return issues;
     },
 
     render: function () {
@@ -377,13 +343,6 @@ var App = React.createClass({
                 openIssuesLoading: false
             });
         }.bind(this));
-
-        getPotentiallyOpenIssues(function (data) {
-            this.setState({
-                potentiallyOpenIssues: data,
-                potentiallyOpenIssuesLoading: false
-            });
-        }.bind(this));
     },
 
     getInitialState: function () {
@@ -406,10 +365,7 @@ var App = React.createClass({
                 wantToWorkWith(this.state.languageFilters, this.selectFilter)),
 
             d.h2({}, "Open Issues"),
-            issueList(this.state.openIssues, this.state.openIssuesLoading, this.state.languageFilters),
-
-            d.h2({}, "Potentially Open Issues"),
-            issueList(this.state.potentiallyOpenIssues, this.state.potentiallyOpenIssuesLoading, this.state.languageFilters)
+            issueList(this.state.openIssues, this.state.openIssuesLoading, this.state.languageFilters)
         );
     }
 });
